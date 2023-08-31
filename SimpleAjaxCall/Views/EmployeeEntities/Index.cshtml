@@ -1,0 +1,185 @@
+﻿@model SimpleAjaxCall.Models.EmployeeEntitie
+
+@{
+    ViewBag.Title = "Index";
+}
+
+    <h3>Ajax Call In MVC</h3><br />
+    <form>
+        <div>
+            <div>
+                <h3>Please Enter The Details Below:</h3>
+            </div>
+            <div>
+                <label for=" Employee Id:"></label>
+                <input type="text" id="empId" name="EmpId" placeholder="Enter The Employee id" autocomplete="off"/>
+            </div><br />
+            <div>
+                <label for="Employee Name:"></label>
+                <input type="text" id="empName" name="EmpName" placeholder="Enter The Employee Name" autocomplete="off"/>
+            </div><br />
+            <div>
+                <label for="Employee Salary"></label>
+                <input type="text" id="empSalary" name="EmpSalary" placeholder="Enter The Employee Salary" autocomplete="off"/>
+            </div><br />
+            <div>
+                <input type="button" id="btnSave" name="submitButton" class="btn btn-primary" value="Save" />
+            </div><br />
+            <div>
+                <input type="button" id="btnUpdate" name="UpdateButton" class="btn btn-primary" value="Update" />
+            </div><br />
+            <div>
+                <input type="button" id="btnDelete" name="DeleteButton" class="btn btn-primary" value="Delete" />
+            </div>
+        </div>
+    </form>
+<hr />
+<div>
+    <table id="tblEmpDetails" class="tblEmpDetails">
+        <thead>
+            <tr>
+                <th align="left" class="EmpDetails">EmpId</th>
+                <th align="left" class="EmpDetails">EmpName</th>
+                <th align="left" class="EmpDetails">EmpSalary</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<style type="text/css">
+    .tblEmpDetails{
+        font-family:'Times New Roman', Times, serif;
+        font-size:11px;
+        color:#333333;
+        border-width:1px;
+        border-color:#666666;
+        background-color:#dedede;
+    }
+    .EmpDetails{
+        border-width: 1px;
+        padding: 8px;
+        border-style:solid;
+        border-color:#666666;
+        background-color:#dedede;
+    }
+    .empDetails{
+        border-width:1px;
+        padding:8px;
+        border-style:solid;
+        border-color:#666666;
+        background-color:#ffffff;
+    }
+</style>
+<body>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            LoadData();
+            $("#btnSave").click(function () {
+               // alert("Function is working!");
+                var item = {};
+                item.EmpId = $("#empId").val();
+                item.EmpName = $("#empName").val();
+                item.EmpSalary = $("#empSalary").val();
+                console.log(item);
+                $.ajax({
+                    type: "POST",
+                    url: "/EmployeeEntities/InsertData",
+                    data: JSON.stringify(item),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function () {
+                        alert("Data Saved Successfully");
+                        LoadData();
+
+                    },
+                    error: function () {
+                        alert("Error While inserting Data");
+                    }
+                });
+            });
+        });
+          $(document).ready(function(){
+               $("#btnUpdate").click(function(){
+               var items= {};
+               items.EmpId =$("#empId").val();
+               items.EmpName=$("#empName").val();
+               items.EmpSalary=$("#empSalary").val();
+               console.log(items);
+               $.ajax({
+                   type: "POST",
+                   url: "/EmployeeEntities/UpdateEmp",
+                   data: JSON.stringify(items),
+                   contentType: "application/json; charset=utf-8",
+                   dataType: "json",
+                   success: function(){
+                       alert("Data Updated Successfully.")
+                       LoadData();
+                   },
+                   error: function(){
+                       alert("Error while Updating data");
+                   }
+               });
+               return false;
+               });
+          });
+
+        $(document).ready(function () {
+            $("#btnDelete").click(function () {
+                confirm("Do You Want To Delete the Employee?");
+                var emp = {};
+                emp.EmpId = $("#empId").val();
+                console.log(emp);
+                $.ajax({
+                    type: "POST",
+                    url: "/EmployeeEntities/DeleteEmp",
+                    data: JSON.stringify(emp),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function () {
+                        alert("Data Deleted Successfully.")
+                        LoadData();
+                    },
+                    error: function () {
+                        alert("Error while Deleting data");
+                    }
+                });
+                return false;
+            });
+        });
+
+        function LoadData() {
+            $("#tblEmpDetails tbody tr").remove();
+            $.ajax({
+                type: "POST",
+                url: "/EmployeeEntities/GetDetails",
+                dataType: "json",
+                data: { id: '' },
+                success: function (data) {
+                    var items = '';
+                    $.each(data, function (i, item) {
+                        var rows = "<tr>"
+                            + "<td class='empDetails'>" + item.EmpId + "</td>"
+                            + "<td class='empDetails'>" + item.EmpName + "</td>"
+                            + "<td class ='empDetails'>" + item.EmpSalary + "</td>"
+                            + "</tr>";
+                        $('#tblEmpDetails tbody').append(rows);
+                    });
+                },
+                error: function (ex) {
+                    var r = jQuery.parseJSON(response.responseText);
+                    alert("Message:" + r.Message);
+                    alert("StackTrace:" + r.StackTrace);
+                    alert("ExceptionType:" + r.ExceptionType);
+
+                }
+
+            });
+            return false;
+        }
+    </script>
+</body>
+
+
+
