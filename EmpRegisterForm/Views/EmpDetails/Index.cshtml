@@ -1,0 +1,371 @@
+﻿@model EmpRegisterForm.Models.EmpDetail
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Employee Registration Form</h2>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script src="~/Scripts/jquery.validate.min.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+
+<style type="text/css">
+    .tblEmpDetails {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 11px;
+        color: #333333;
+        border-width: 1px;
+        border-color: #666666;
+        background-color: #dedede;
+    }
+
+    .EmpDetails {
+        border-width: 1px;
+        padding: 8px;
+        border-style: solid;
+        border-color: #666666;
+        background-color: #dedede;
+    }
+
+    .empDetails {
+        border-width: 1px;
+        padding: 8px;
+        border-style: solid;
+        border-color: #666666;
+        background-color: #ffffff;
+    }
+</style>
+<script>
+
+    $(document).ready(function () {
+        $("#CountryId").change(function () {
+            var id = $(this).val();
+            $("#stateId").empty();
+            $.ajax({
+                type: "GET",
+                url: "/EmpDetails/States",
+                dataType: "json",
+                data: { id: id },
+                success: function (data) {
+                    var v = "<select id='stateId'>";
+
+                    v = v + '<option value="">---Select---</option>';
+                    for (var i = 0; i < data.length; i++) {
+                        v = v + '<option value=' + data[i].Value + '>' + data[i].Text + '</option>';
+                    }
+                    v = v + '</select>';
+                    $("#stateId").html(v);
+                },
+                error: function () {
+                    alert("Not able to fetch Details")
+                }
+
+            });
+
+        });
+    });
+    $(document).ready(function () {
+        $("#stateId").change(function () {
+
+            var id = $(this).val();
+            $("#cityId").empty();
+
+            $.ajax({
+                type: "GET",
+                url: "/EmpDetails/City",
+                dataType: "json",
+                data: { id: id },
+                success: function (data) {
+                    var v = "<select id = 'cityId'>";
+                    v = v + '<option value = "">---Select City---</option>';
+                    for (var i = 0; i < data.length; i++) {
+                        v = v + '<option value=' + data[i].Value + '>' + data[i].Text + '</option>';
+                    }
+                    v = v + '</select>';
+                    $("#cityId").html(v);
+
+                },
+                error: function () {
+                    alert("Not able to fetch Details")
+                }
+            });
+        });
+    });
+
+    $(document).ready(function () {
+        LoadDetails();
+        $("#btnSubmit").click(function () {
+
+            var item = {};
+            item.Id = $("#empId").val();
+            item.FirstName = $("#firstName").val();
+            item.LastName = $("#lastName").val();
+            item.Email = $("#email").val();
+            item.Gender = $(".Gender:checked").val();
+            item.DateOfBirth = $("#date").val();
+            item.hobbies = $("#hobbies").val();
+            $.ajax({
+                type: "POST",
+                url: "/EmpDetails/CreateEmp",
+                data: JSON.stringify(item),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function () {
+                    alert("Record Added SuccessFully");
+                    Clear();
+                    LoadDetails();
+                },
+                error: function () {
+                    alert("Error while Adding The record");
+                }
+            });
+
+        });
+    });
+    $(document).ready(function () {
+        $("#tblEmpDetails tbody").on('click', '.btnDelete', function () {
+            alert("Function Working")
+            confirm("Do You Want to Delete?");
+            var emp = {};
+            emp.Id = $(this).val();
+            console.log(emp);
+            $.ajax({
+                type: "POST",
+                url: "/EmpDetails/DeleteEmp",
+                data: JSON.stringify(emp),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function () {
+                    alert("Data Deleted Successfully.")
+                    LoadDetails();
+                },
+                error: function () {
+                    alert("Error while Deleting data");
+                }
+            });
+        });
+    });
+
+    $(document).ready(function () {
+        $("#tblEmpDetails tbody").on('click', '.btnEdit', function () {
+            var emp = {};
+                emp.Id = $(this).val();
+            $.ajax({
+                type: "POST",
+                url: "/EmpDetails/EditEmp",
+                data: JSON.stringify(emp),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {    
+                        $("#empId").val(data.Id);
+                        $("#firstName").val(data.FirstName);
+                        $("#lastName").val(data.LastName);
+                    $("#email").val(data.Email);
+                    $("#btnSubmit").hide();
+                    $("#btnUpdate").css("display", "block");
+                },
+                error: function () {
+                    alert("Error while Updating data");
+                }
+
+            });
+        });
+    });
+    function Clear() {
+        $("#empId").val("");
+        $("#firstName").val("");
+        $("#lastName").val("");
+        $("#email").val("");
+        $(".Gender:checked").val("");
+        $("#date").val("");
+        $("#hobbies").val("");
+
+        $("btnSubmit").show();
+        $("btnUpdate").hide();
+    }
+
+    function UpdateDetails() {
+        var item = {};
+        item.Id = $("#empId").val();
+        item.FirstName = $("#firstName").val();
+        item.LastName = $("#lastName").val();
+        item.Email = $("#email").val();
+        item.Gender = $(".Gender:checked").val();
+        item.DateOfBirth = $("#date").val();
+        item.hobbies = $("#hobbies").val();
+        $.ajax({
+            type: "POST",
+            url: "/EmpDetails/UpdateEmp",
+            data: JSON.stringify(item),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function () {
+                alert("Data Updated Successfully")
+                LoadDetails();
+            },
+            error: function () {
+                alert("Error while updating data");
+            }
+
+        });
+    };
+
+
+    function LoadDetails() {
+        $("#tblEmpDetails tbody tr").remove();
+        $.ajax({
+            type: "GET",
+            url: "/EmpDetails/GetDetails",
+            dataType: "json",
+            data: { id: '' },
+            success: function (data) {
+                var items = '';
+                $.each(JSON.parse(data), function (i, item) {
+
+                    var rows = "<tr>"
+                        + "<td class = 'EmpDetails'>" + item.Id + "</td>"
+                        + "<td class = 'EmpDetails'>" + item.FirstName + "</td>"
+                        + "<td class ='EmpDetails'>" + item.LastName + "</td>"
+                        + "<td class = 'EmpDetails'>" + item.Email + "</td>"
+                        + "<td class='EmpDetails'>" + item.Gender + "</td>"
+                        + "<td class = 'EmpDetails'>" + item.DateOfBirth + "</td>"
+                        + "<td class ='EmpDetails'>" + item.hobbies + "</td>"
+                        + "<td class ='EmpDetails'>" + "<button class ='btnEdit' id='btnEdit' Value='" + item.Id + "'>Edit </button>" + "<button class='btnDelete'id='btnDelete'  Value='" + item.Id + "'>Delete</button>" + "</td>"
+                        + "</tr>"
+                    $("#tblEmpDetails tbody").append(rows);
+                });
+            },
+            error: function () {
+                alert("Unable to fetch Details")
+            }
+        });
+    }
+
+
+
+</script>
+
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <table>
+        <tr>
+            <th>Id:</th>
+            <td>
+                @Html.TextBoxFor(model => model.Id, new { @id = "empId" ,autocomplete="off"})
+            </td>
+        </tr>
+        <tr>
+            <th>First Name:</th>
+            <td>
+                @Html.TextBoxFor(model => model.FirstName, new { @id = "firstName", autocomplete = "off" })
+                @Html.ValidationMessageFor(model => model.FirstName, "", new { @class = "text-danger" })
+            </td>
+        </tr>
+        <tr>
+            <th>LastName:</th>
+            <td>
+                @Html.TextBoxFor(model => model.LastName, new { @id = "lastName", autocomplete = "off" })
+                @Html.ValidationMessageFor(model => model.LastName, "", new { @class = "text-danger" })
+            </td>
+        </tr>
+        <tr>
+            <th>Email:</th>
+            <td>
+                @Html.TextBoxFor(model => model.Email, new { @id = "email", autocomplete = "off" })
+                @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+            </td>
+        </tr>
+        <tr>
+            <th>Gender:</th>
+            <td id="Gender">
+                @Html.RadioButtonFor(model => model.Gender, "Male", new { @class = "Gender" }) Male<br />
+                @Html.RadioButtonFor(model => model.Gender, "Female", new { @class = "Gender" }) Female
+                @Html.ValidationMessageFor(model => model.Gender, "", new { @class = "text-danger" })
+            </td>
+        </tr>
+        <tr>
+            <th>Date Of Birth:</th>
+            <td>
+                @Html.TextBoxFor(model => model.DateOfBirth, new { @type = "date", @id = "date" })
+                @Html.ValidationMessageFor(model => model.DateOfBirth, "", new { @class = "text-danger" })
+            </td>
+        </tr>
+        <tr>
+            <th>Country:</th>
+            <td>
+                @Html.DropDownList("Country", null, "Select Country", new { @id = "CountryId" })
+            </td>
+        </tr>
+        <tr>
+            <th>State:</th>
+            <td>
+                @Html.DropDownList("State", new SelectList(string.Empty, "Value", "Text"), "Select State", new { @id = "stateId" })
+            </td>
+        </tr>
+        <tr>
+            <th>City:</th>
+            <td>
+                @Html.DropDownList("City", new SelectList(string.Empty, "Value", "Text"), "Select City", new { @id = "cityId" })
+            </td>
+
+        </tr>
+        <tr>
+            <th>Hobbies</th>
+            <td>
+                @Html.HiddenFor(model => model.hobbies, new { htmlAttributes = new { id = "hobbies" } })
+                @Html.ValidationMessageFor(model => model.hobbies, "", new { @class = "text-danger" })
+                <input type="checkbox" id="b" onchange="getSelect()" value="Badminton" />Badminton
+                <input type="checkbox" id="c" onchange="getSelect()" value="Cooking" />Cooking
+                <input type="checkbox" id="r" onchange="getSelect()" value="Riding" />Riding
+                <input type="checkbox" id="t" onchange="getSelect()" value="Travelling" />Travelling
+                <input type="checkbox" id="R" onchange="getSelect()" value="Reading" />Reading
+                <script>
+                    function getSelect() {
+                        var sList = " ";
+                        $('input[type=checkbox]').each(function () {
+                            if (this.checked) {
+                                sList += this.value + ",";
+                            }
+                        });
+                        $("#hobbies").val(sList);
+                        console.log(sList);
+                    }
+                </script>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.TextBox("Submit", "Submit", new { type = "submit", @id = "btnSubmit",})
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.TextBox("Update", "Update", new {type="submit", @id="btnUpdate", onclick = "UpdateDetails();",style= " display:none" })
+            </td>
+        </tr>
+    </table>
+
+}
+<hr />
+<div>
+    <table id="tblEmpDetails">
+        <thead>
+            <tr>
+                <th align="center" class="empDetails">Id</th>
+                <th align="center" class="empDetails">FirstName</th>
+                <th align="center" class="empDetails">LastName</th>
+                <th align="center" class="empDetails">Email</th>
+                <th align="center" class="empDetails">Gender</th>
+                <th align="center" class="empDetails">DateOfBirth</th>
+                <th align="center" class="empDetails">Hobbies</th>
+                <th align="center" class="empDetails">Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
